@@ -1,6 +1,7 @@
 import pygame as pg
 from settings import *
 from pygame.sprite import Sprite
+from utils import *
 
 # os = operating system, which on this device, is Windows
 from os import path
@@ -48,9 +49,12 @@ class Player(Sprite):
         # pass self.groups in Sprite so that game can leverage groups
         Sprite.__init__(self, self.groups)
         self.game = game
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
         self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
+        self.image.set_colorkey(BLACK)
         # colors the rectangle with the designated color WHITE
-        self.image.fill(WHITE)
+        # self.image.fill(WHITE)
         self.rect = self.image.get_rect()
         self.hit_rect = PLAYER_HIT_RECT
         # establishes velocity as a vector with no magnitude or direction
