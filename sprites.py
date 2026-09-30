@@ -50,9 +50,10 @@ class Player(Sprite):
         Sprite.__init__(self, self.groups)
         self.game = game
         self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
+        self.load_images()
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
-        self.image.set_colorkey(BLACK)
+        # self.image.set_colorkey(BLACK)
         # colors the rectangle with the designated color WHITE
         # self.image.fill(WHITE)
         self.rect = self.image.get_rect()
@@ -64,6 +65,8 @@ class Player(Sprite):
         # self.vx, self.vy = 0,0
         # self.x = x*TILESIZE
         # self.y = y*TILESIZE
+        self.last_update = 0
+        self.current_frame = 0
         # print("player initialized...")
         # print(self.rect.x)
         # print(self.rect.y)
@@ -72,6 +75,7 @@ class Player(Sprite):
         # reset velocity to 0 again because init only runs once
         self.vel = vec(0,0)
         # self.vx, self.vy = 0,0
+        self.dir = "none"
         # listen for events; detects if the key is pressed
         keys = pg.key.get_pressed()
         # change velocity based on which key is pressed
@@ -79,6 +83,7 @@ class Player(Sprite):
         if keys[pg.K_LEFT] or keys[pg.K_a]:
             # prints this so that we can detect whether the game registers the input or not
             # print("trying to go left...")
+            self.dir = "left"
             # changes the velocity (x-axis) to be the player speed to the left (negative)
             self.vel.x = -PLAYER_SPEED
             # self.vx = -PLAYER_SPEED
@@ -113,9 +118,28 @@ class Player(Sprite):
         #     self.vx *= 0.7071
         #     self.vy *= 0.7071
         # print(keys[pg.K_LEFT])
+    def animate(self):
+        # use the time element to get now
+        now = pg.time.get_ticks()
+        if self.dir == "none":
+            if now - self.last_update > 350:
+                self.last_update = now
+                self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
+                bottom = self.rect.bottom
+                self.image = self.idle_frames[self.current_frame]
+                self.image.set_colorkey(NEARLY_BLACK)
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+        elif self.dir == "left":
+            pass
+    def load_images(self):
+        self.idle_frames = [self.spritesheet.get_image(0,0,TILESIZE, TILESIZE),
+                            self.spritesheet.get_image(TILESIZE,0,TILESIZE, TILESIZE)
+                            ]
     def update(self):
         # calls the get_keys function
         self.get_keys()
+        self.animate()
         self.rect.center = self.pos
         self.pos += self.vel * self.game.dt
         self.hit_rect.centerx = self.pos.x
