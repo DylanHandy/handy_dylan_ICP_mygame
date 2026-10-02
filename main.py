@@ -50,12 +50,21 @@ class Game:
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
 
+        # goes through all the rows and their tiles of self.map
         for row, tiles in enumerate(self.map.data):
+            # goes through all the columns and their tiles of self.map
             for col, tile in enumerate(tiles):
+                # detects if the tile in the selected column and row is "1"
                 if tile == "1":
+                    # creates a wall wherever the tile is "1"
                     Wall(self, col, row)
+                # detects if the tile in the selected column and row is "M"
                 if tile == "M":
-                    pass
+                    # creates a mob wherever the tile is "M"
+                    Mob(self, col, row)
+        # does the same thing as above but for "P" the player
+        # separate from the previous loops because the player shouldn't
+        # be able to be "underneath" any walls or mobs
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == "P":

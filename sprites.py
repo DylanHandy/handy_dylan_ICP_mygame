@@ -37,8 +37,11 @@ def collide_with_walls(sprite, group, dir):
             if hits[0].rect.centery > sprite.hit_rect.centery:
                 # reposition the player (sprite) to the top of wall
                 sprite.pos.y = hits[0].rect.top - sprite.hit_rect.height / 2
+            # checks to see if we are below the wall
             if hits[0].rect.centery < sprite.hit_rect.centery:
+                # reposition the player (sprite) to the bottom of wall
                 sprite.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
+            # sets the y velocity to 0 to stop the player from continuing moving
             sprite.vel.y = 0
             sprite.hit_rect.centery = sprite.pos.y
 
@@ -49,9 +52,13 @@ class Player(Sprite):
         # pass self.groups in Sprite so that game can leverage groups
         Sprite.__init__(self, self.groups)
         self.game = game
+        # creates a spritesheet using sprite_sheet.png
         self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
+        # calls the load_images function through self
         self.load_images()
+        # establishes the size of the image to have dimensions of TILESIZE
         self.image = pg.Surface((TILESIZE, TILESIZE))
+        # gets the image from self.spritesheet to display it onscreen
         self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
         # self.image.set_colorkey(BLACK)
         # colors the rectangle with the designated color WHITE
@@ -121,16 +128,21 @@ class Player(Sprite):
     def animate(self):
         # use the time element to get now
         now = pg.time.get_ticks()
+        # checks if the direction the player has been changed from "none"
         if self.dir == "none":
+            # checks whether 350ms have elapsed between the last update and now
             if now - self.last_update > 350:
                 self.last_update = now
                 self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
                 bottom = self.rect.bottom
                 self.image = self.idle_frames[self.current_frame]
-                self.image.set_colorkey(NEARLY_BLACK)
+                # establishes BLACK as the color that will be filtered out of the sprite
+                self.image.set_colorkey(BLACK)
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
+        # checks if the direction the player is moving in is "left"
         elif self.dir == "left":
+            # if it is, the sprite won't animate between frames and will remain still
             pass
     def load_images(self):
         self.idle_frames = [self.spritesheet.get_image(0,0,TILESIZE, TILESIZE),
@@ -175,8 +187,14 @@ class Mob(Sprite):
         self.groups = game.all_sprites, game.all_mobs
         Sprite.__init__(self, self.groups)
         self.game = game
+        # creates a spritesheet using sprite_sheet.png
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
+        # calls the load_images function through self
+        self.load_images()
+        # establishes the size of the image to have dimensions of TILESIZE
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(RED)
+        # gets the image from self.spritesheet to display it onscreen
+        self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
         self.rect = self.image.get_rect()
         self.speed = 1
         self.vx, self.vy = 500,0
@@ -187,8 +205,30 @@ class Mob(Sprite):
         # print("mob initialized")
         # print(self.rect.x)
         # print(self.rect.y)
-        
+        self.last_update = 0
+        self.current_frame = 0
+
+    def animate(self):
+        # use the time element to get now
+        now = pg.time.get_ticks()
+        # checks whether 350ms have elapsed between the last update and now
+        if now - self.last_update > 350:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
+            bottom = self.rect.bottom
+            self.image = self.idle_frames[self.current_frame]
+            # establishes BLACK as the color that will be filtered out of the sprite
+            self.image.set_colorkey(BLACK)
+            self.rect = self.image.get_rect()
+            self.rect.bottom = bottom
+
+    def load_images(self):
+        self.idle_frames = [self.spritesheet.get_image(2*TILESIZE,0,TILESIZE, TILESIZE),
+                            self.spritesheet.get_image(3*TILESIZE,0,TILESIZE, TILESIZE)
+                            ]
+    
     def update(self):
+        self.animate()
         # detects if the right of the mob has hit the edge of the right 
         # or the left of the mob has hit the left wall
         if self.rect.right > WIDTH or self.rect.x < 0:
