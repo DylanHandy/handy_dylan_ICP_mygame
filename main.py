@@ -88,6 +88,21 @@ class Game:
                     self.playing = False
                 self.running = False
 
+    def draw_text(self, text, size, color, x, y):
+        # establishes the font as arial
+        font_name = pg.font.match_font("arial")
+        # Font is a class that takes the font name and the size
+        font = pg.font.Font(font_name, size)
+        # render method establishes the given text with a given color
+        # and the already created font
+        # True is for antialiasing
+        text_surface = font.render(text, True, color)
+        # gets the value of a rectangle of the text_surface
+        text_rect = text_surface.get_rect()
+        # establishes where the text will be drawn using x and y coordinates
+        text_rect.midtop = (x,y)
+        self.screen.blit(text_surface, text_rect)
+
     # process
     def update(self):
         # updates the sprites
@@ -95,8 +110,12 @@ class Game:
 
     # output (drawing everything)
     def draw(self):
+        # the order matters: the first things are on the bottom because
+        # they are the first to be drawn - last things are drawn on top or last
         self.screen.fill(BGCOLOR)
         self.all_sprites.draw(self.screen)
+        # calls draw_text funciton to display frames per second as text on screen
+        self.draw_text("Frames per second: " + str(floor(1/self.dt)), 24, WHITE, WIDTH/2, HEIGHT/4)
         pg.display.flip()
 
 if __name__ == "__main__":

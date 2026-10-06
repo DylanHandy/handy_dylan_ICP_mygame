@@ -167,9 +167,15 @@ class Wall(Sprite):
         self.groups = game.all_sprites, game.all_walls
         Sprite.__init__(self, self.groups)
         self.game = game
+        # creates a spritesheet using sprite_sheet.png
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
+        # calls the load_images function through self
+        self.load_images()
         self.image = pg.Surface((TILESIZE, TILESIZE))
+        # gets the image from self.spritesheet to display it onscreen
+        self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
         # colors the rectangle with the designated color GREEN
-        self.image.fill(GREEN)
+        # self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.vx, self.vy = 0,0
         self.x = x*TILESIZE
@@ -179,8 +185,29 @@ class Wall(Sprite):
         # print("wall initialized")
         # print(self.rect.x)
         # print(self.rect.y)
+        self.last_update = 0
+        self.current_frame = 0
+    
+    # the same animate and load_images function are repeatedly used for all the classes
+    # maybe a parent class that already has it???
+    def animate(self):
+        # use the time element to get now
+        now = pg.time.get_ticks()
+        # checks whether 350ms have elapsed between the last update and now
+        if now - self.last_update > 350:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
+            bottom = self.rect.bottom
+            self.image = self.idle_frames[self.current_frame]
+            # establishes BLACK as the color that will be filtered out of the sprite
+            self.image.set_colorkey(BLACK)
+            self.rect = self.image.get_rect()
+            self.rect.bottom = bottom
 
-
+    def load_images(self):
+        self.idle_frames = [self.spritesheet.get_image(4*TILESIZE,0,TILESIZE, TILESIZE)
+                            ]
+    
 
 class Mob(Sprite):
     def __init__(self, game, x, y):
@@ -196,8 +223,8 @@ class Mob(Sprite):
         # gets the image from self.spritesheet to display it onscreen
         self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
         self.rect = self.image.get_rect()
-        self.speed = 1
-        self.vx, self.vy = 500,0
+        self.speed = 0
+        self.vx, self.vy = 0,0
         self.x = x*TILESIZE
         self.y = y*TILESIZE
         self.rect.x = self.x
@@ -231,12 +258,12 @@ class Mob(Sprite):
         self.animate()
         # detects if the right of the mob has hit the edge of the right 
         # or the left of the mob has hit the left wall
-        if self.rect.right > WIDTH or self.rect.x < 0:
-            # print("i've broken out!")
-            # changes speed to -1 to switch the direction of the velocity
-            self.speed *= -1
-            # makes the mob go down (y-value up) one unit after colliding with the edge
-            self.y += TILESIZE
+        # if self.rect.right > WIDTH or self.rect.x < 0:
+        #     # print("i've broken out!")
+        #     # changes speed to -1 to switch the direction of the velocity
+        #     self.speed *= -1
+        #     # makes the mob go down (y-value up) one unit after colliding with the edge
+        #     self.y += TILESIZE
         self.x += self.vx * self.game.dt * self.speed
         self.rect.x = self.x
         self.y += self.vy * self.game.dt * self.speed
