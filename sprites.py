@@ -177,6 +177,7 @@ class Wall(Sprite):
         # colors the rectangle with the designated color GREEN
         # self.image.fill(GREEN)
         self.rect = self.image.get_rect()
+        self.speed = 0
         self.vx, self.vy = 0,0
         self.x = x*TILESIZE
         self.y = y*TILESIZE
@@ -207,6 +208,13 @@ class Wall(Sprite):
     def load_images(self):
         self.idle_frames = [self.spritesheet.get_image(4*TILESIZE,0,TILESIZE, TILESIZE)
                             ]
+
+    def update(self):
+        self.animate()
+        self.x += self.vx * self.game.dt * self.speed
+        self.rect.x = self.x
+        self.y += self.vy * self.game.dt * self.speed
+        self.rect.y = self.y
     
 
 class Mob(Sprite):
@@ -223,17 +231,22 @@ class Mob(Sprite):
         # gets the image from self.spritesheet to display it onscreen
         self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
         self.rect = self.image.get_rect()
-        self.speed = 0
-        self.vx, self.vy = 0,0
-        self.x = x*TILESIZE
-        self.y = y*TILESIZE
-        self.rect.x = self.x
-        self.rect.y = self.y
+        self.speed = 100
+        self.hit_rect = MOB_HIT_RECT
+        # establishes velocity as a vector with no magnitude or direction
+        self.vel = vec(0,0)
+        # establishes position as a vector with x and y
+        self.pos = vec(x*TILESIZE,y*TILESIZE)
         # print("mob initialized")
         # print(self.rect.x)
         # print(self.rect.y)
         self.last_update = 0
         self.current_frame = 0
+
+    def load_images(self):
+        self.idle_frames = [self.spritesheet.get_image(2*TILESIZE,0,TILESIZE, TILESIZE),
+                            self.spritesheet.get_image(3*TILESIZE,0,TILESIZE, TILESIZE)
+                            ]
 
     def animate(self):
         # use the time element to get now
@@ -249,10 +262,22 @@ class Mob(Sprite):
             self.rect = self.image.get_rect()
             self.rect.bottom = bottom
 
-    def load_images(self):
-        self.idle_frames = [self.spritesheet.get_image(2*TILESIZE,0,TILESIZE, TILESIZE),
-                            self.spritesheet.get_image(3*TILESIZE,0,TILESIZE, TILESIZE)
-                            ]
+    def chase(self, obj):
+        if self.pos.x < obj.pos.x:
+            self.vel.x = self.speed
+            self.dir = "right"
+        elif self.pos.x > obj.pos.x:
+            self.vel.x = -self.speed
+            self.dir = "left"
+        else:
+            self.vel.x = 0
+
+        if self.pos.y < obj.pos.y:
+            self.vel.y = self.speed
+        elif self.pos.y > obj.pos.y:
+            self.vel.y = -self.speed
+        else:
+            self.vel.y = 0
     
     def update(self):
         self.animate()
@@ -264,7 +289,14 @@ class Mob(Sprite):
         #     self.speed *= -1
         #     # makes the mob go down (y-value up) one unit after colliding with the edge
         #     self.y += TILESIZE
-        self.x += self.vx * self.game.dt * self.speed
-        self.rect.x = self.x
-        self.y += self.vy * self.game.dt * self.speed
-        self.rect.y = self.y
+        # self.x += self.vx * self.game.dt * self.speed
+        # self.rect.x = self.x
+        # self.y += self.vy * self.game.dt * self.speed
+        # self.rect.y = self.y
+        self.rect.center = self.pos
+        self.pos += self.vel * self.game.dt
+        self.hit_rect.centerx = self.pos.x
+        collide_with_walls(self, self.game.all_walls, "x")
+        self.hit_rect.centery = self.pos.y
+        collide_with_walls(self, self.game.all_walls, "y")
+        self.rect.center = self.hit_rect.center

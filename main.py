@@ -68,7 +68,7 @@ class Game:
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == "P":
-                    Player(self, col, row)
+                    self.player = Player(self, col, row)
 
     def run(self):
         self.playing = True
