@@ -77,6 +77,7 @@ class Player(Sprite):
         # print("player initialized...")
         # print(self.rect.x)
         # print(self.rect.y)
+        self.collectibles = 0
     # creating player controls by key presses
     def get_keys(self):
         # reset velocity to 0 again because init only runs once
@@ -152,6 +153,9 @@ class Player(Sprite):
         # calls the get_keys function
         self.get_keys()
         self.animate()
+        hits = pg.sprite.spritecollide(self, self.game.all_collectibles, True, collide_hit_rect)
+        if hits:
+            self.collectibles += 1
         self.rect.center = self.pos
         self.pos += self.vel * self.game.dt
         self.hit_rect.centerx = self.pos.x
@@ -159,7 +163,6 @@ class Player(Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.all_walls, "y")
         self.rect.center = self.hit_rect.center
-
 
            
 class Wall(Sprite):
@@ -262,6 +265,8 @@ class Mob(Sprite):
             self.rect = self.image.get_rect()
             self.rect.bottom = bottom
 
+    # used autocomplete by creating a chase method using pos vectors
+    # and obj as a parameter
     def chase(self, obj):
         if self.pos.x < obj.pos.x:
             self.vel.x = self.speed
@@ -293,10 +298,60 @@ class Mob(Sprite):
         # self.rect.x = self.x
         # self.y += self.vy * self.game.dt * self.speed
         # self.rect.y = self.y
+        self.chase(self.game.player)
         self.rect.center = self.pos
         self.pos += self.vel * self.game.dt
         self.hit_rect.centerx = self.pos.x
-        collide_with_walls(self, self.game.all_walls, "x")
         self.hit_rect.centery = self.pos.y
-        collide_with_walls(self, self.game.all_walls, "y")
         self.rect.center = self.hit_rect.center
+
+
+
+class Collectible(Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.all_collectibles
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        # creates a spritesheet using sprite_sheet.png
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
+        # calls the load_images function through self
+        self.load_images()
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        # gets the image from self.spritesheet to display it onscreen
+        self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
+        # colors the rectangle with the designated color GREEN
+        # self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.speed = 0
+        self.x = x*TILESIZE
+        self.y = y*TILESIZE
+        self.rect.x = self.x
+        self.rect.y = self.y
+        # print("wall initialized")
+        # print(self.rect.x)
+        # print(self.rect.y)
+        self.last_update = 0
+        self.current_frame = 0
+    
+    # the same animate and load_images function are repeatedly used for all the classes
+    # maybe a parent class that already has it???
+    def animate(self):
+        # use the time element to get now
+        now = pg.time.get_ticks()
+        # checks whether 350ms have elapsed between the last update and now
+        if now - self.last_update > 350:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
+            bottom = self.rect.bottom
+            self.image = self.idle_frames[self.current_frame]
+            # establishes BLACK as the color that will be filtered out of the sprite
+            self.image.set_colorkey(BLACK)
+            self.rect = self.image.get_rect()
+            self.rect.bottom = bottom
+
+    def load_images(self):
+        self.idle_frames = [self.spritesheet.get_image(5*TILESIZE,0,TILESIZE, TILESIZE)
+                            ]
+
+    def update(self):
+        self.animate()

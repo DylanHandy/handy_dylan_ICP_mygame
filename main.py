@@ -49,6 +49,7 @@ class Game:
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
+        self.all_collectibles = pg.sprite.Group()
 
         # goes through all the rows and their tiles of self.map
         for row, tiles in enumerate(self.map.data):
@@ -62,6 +63,9 @@ class Game:
                 if tile == "M":
                     # creates a mob wherever the tile is "M"
                     Mob(self, col, row)
+                if tile == "C":
+                    # creates a collectible wherever the tile is "C"
+                    Collectible(self, col, row)
         # does the same thing as above but for "P" the player
         # separate from the previous loops because the player shouldn't
         # be able to be "underneath" any walls or mobs
@@ -116,6 +120,7 @@ class Game:
         self.all_sprites.draw(self.screen)
         # calls draw_text funciton to display frames per second as text on screen
         self.draw_text("Frames per second: " + str(floor(1/self.dt)), 24, WHITE, WIDTH/2, HEIGHT/4)
+        self.draw_text(f"Coins: {self.player.collectibles}", 24, WHITE, WIDTH/2, HEIGHT/3)
         pg.display.flip()
 
 if __name__ == "__main__":
