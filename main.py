@@ -39,8 +39,10 @@ class Game:
         self.game_dir = path.dirname(__file__)
         # image directory
         self.img_dir = path.join(self.game_dir, "images")
+        # sound handling
         # sound (audio) directory
         self.snd_dir = path.join(self.game_dir, "audio")
+        self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "odd_coin.mp3"))
         self.map = Map(path.join(self.game_dir, map))
 
     def new(self):
@@ -73,6 +75,9 @@ class Game:
             for col, tile in enumerate(tiles):
                 if tile == "P":
                     self.player = Player(self, col, row)
+        
+        pg.mixer.music.load(path.join(self.snd_dir, "dungeon_theme.mp3"))
+        pg.mixer.music.play(loops=-1)
 
     def run(self):
         self.playing = True

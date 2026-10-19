@@ -156,6 +156,8 @@ class Player(Sprite):
         hits = pg.sprite.spritecollide(self, self.game.all_collectibles, True, collide_hit_rect)
         if hits:
             self.collectibles += 1
+            # plays the pickup_snd audio
+            self.game.pickup_snd.play()
         self.rect.center = self.pos
         self.pos += self.vel * self.game.dt
         self.hit_rect.centerx = self.pos.x
@@ -316,29 +318,30 @@ class Collectible(Sprite):
         self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
         # calls the load_images function through self
         self.load_images()
-        self.image = pg.Surface((TILESIZE, TILESIZE))
+        # self.image = pg.Surface((TILESIZE, TILESIZE))
         # gets the image from self.spritesheet to display it onscreen
-        self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
+        self.image = self.spritesheet.get_image(0,0,TILESIZE, TILESIZE)
         # colors the rectangle with the designated color GREEN
         # self.image.fill(GREEN)
         self.rect = self.image.get_rect()
-        self.speed = 0
-        self.x = x*TILESIZE
-        self.y = y*TILESIZE
-        self.rect.x = self.x
-        self.rect.y = self.y
-        # print("wall initialized")
+        self.image.set_colorkey(BLACK)
+        self.pos = vec(x*TILESIZE, y*TILESIZE)
+        # self.x = x*TILESIZE
+        # self.y = y*TILESIZE
+        self.rect.x = self.pos.x
+        self.rect.y = self.pos.y
+        # print("collectible initialized")
         # print(self.rect.x)
         # print(self.rect.y)
         self.last_update = 0
         self.current_frame = 0
-    
-    # the same animate and load_images function are repeatedly used for all the classes
-    # maybe a parent class that already has it???
+
+    def load_images(self):
+        self.idle_frames = [self.spritesheet.get_image(5*TILESIZE,0,TILESIZE, TILESIZE),
+                            ]
+
     def animate(self):
-        # use the time element to get now
         now = pg.time.get_ticks()
-        # checks whether 350ms have elapsed between the last update and now
         if now - self.last_update > 350:
             self.last_update = now
             self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
@@ -348,10 +351,8 @@ class Collectible(Sprite):
             self.image.set_colorkey(BLACK)
             self.rect = self.image.get_rect()
             self.rect.bottom = bottom
-
-    def load_images(self):
-        self.idle_frames = [self.spritesheet.get_image(5*TILESIZE,0,TILESIZE, TILESIZE)
-                            ]
-
+    
     def update(self):
         self.animate()
+        self.rect.x = self.pos.x
+        self.rect.y = self.pos.y
