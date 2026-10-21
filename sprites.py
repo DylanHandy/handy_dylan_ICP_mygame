@@ -156,6 +156,7 @@ class Player(Sprite):
         hits = pg.sprite.spritecollide(self, self.game.all_collectibles, True, collide_hit_rect)
         if hits:
             self.collectibles += 1
+            self.game.score += 1
             # plays the pickup_snd audio
             self.game.pickup_snd.play()
         self.rect.center = self.pos

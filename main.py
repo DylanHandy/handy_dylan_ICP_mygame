@@ -28,15 +28,18 @@ class Game:
         pg.init()
         pg.mixer.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
-        print("game initialized...")
+        # print("game initialized...")
         pg.display.set_caption(TITLE)
         self.running = True
         self.playing = True
         # establishes the Clock class as self.clock
         self.clock = pg.time.Clock()
+        self.high_score = 0
+        self.score = 0
 
     def load_data(self, map):
         self.game_dir = path.dirname(__file__)
+        self.game_save_file = path.join(self.game_dir, "highscore.txt")
         # image directory
         self.img_dir = path.join(self.game_dir, "images")
         # sound handling
@@ -44,10 +47,28 @@ class Game:
         self.snd_dir = path.join(self.game_dir, "audio")
         self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "odd_coin.mp3"))
         self.map = Map(path.join(self.game_dir, map))
-
+        try:
+            # "x" creates a file but won't override an existing file
+            with open(self.game_save_file, "x", encoding="utf-8") as file:
+                file.write("hello world!")
+            print("file created successfully!")
+        # detects if the file already exists and distributes an error
+        except FileExistsError:
+            print("file already exists")
+        
+        with open(self.game_save_file, "r") as file:
+            try:
+                # sets high score as what the file reads
+                # must be integer
+                self.high_score = int(file.read())
+            except:
+                # if file can't be opened, sets high score to 0
+                # self.high_score = 0
+                print("high score not read")
+            
     def new(self):
         self.load_data("level1.txt")
-        print(self.map.data)
+        # print(self.map.data)
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
@@ -93,6 +114,22 @@ class Game:
     def events(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
+                # try and except allows to write specifc messages
+                # for specifc errors (error handling)
+                try:
+                    # only change the high score if the new score has increased it
+                    if self.score > self.high_score:
+                        # with open allows for file handling, including
+                        # "w" creates or writes a new file (can override old)
+                        with open(path.join(self.game_dir, self.game_save_file), "w") as file:
+                            # tells the file to write hello world inside
+                            # must be string in order to be writable
+                            file.write(str(self.score))
+                # detects if there is a type error
+                except TypeError:
+                    # alerts the user using custom error message
+                    print("incorrect type")
+                
                 if self.playing:
                     self.playing = False
                 self.running = False
@@ -126,6 +163,8 @@ class Game:
         # calls draw_text funciton to display frames per second as text on screen
         self.draw_text("Frames per second: " + str(floor(1/self.dt)), 24, WHITE, WIDTH/2, HEIGHT/4)
         self.draw_text(f"Coins: {self.player.collectibles}", 24, WHITE, WIDTH/2, HEIGHT/3)
+        self.draw_text(f"Score: {self.score}", 24, WHITE, WIDTH/2, HEIGHT/2.5)
+        self.draw_text(f"High Score: {self.high_score}", 24, WHITE, WIDTH/2, HEIGHT/10)
         pg.display.flip()
 
 if __name__ == "__main__":

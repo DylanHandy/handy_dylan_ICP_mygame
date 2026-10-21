@@ -14,7 +14,7 @@ class Map:
         self.tileheight = len(self.data)
         self.width = self.tilewidth * TILESIZE
         self.height = self.tileheight * TILESIZE
-        print("map instantiated")
+        # print("map instantiated")
 
 # establish Spritesheet class to import a sheet with all sprites in it
 class Spritesheet:
