@@ -3,6 +3,8 @@ from settings import *
 from pygame.sprite import Sprite
 from utils import *
 
+from random import randint
+
 # os = operating system, which on this device, is Windows
 from os import path
 
@@ -155,6 +157,8 @@ class Player(Sprite):
         self.animate()
         hits = pg.sprite.spritecollide(self, self.game.all_collectibles, True, collide_hit_rect)
         if hits:
+            for i in range(10):
+                Particle(self.game, hits[0].pos.x, hits[0].pos.y)
             self.collectibles += 1
             self.game.score += 1
             # plays the pickup_snd audio
@@ -221,7 +225,40 @@ class Wall(Sprite):
         self.rect.x = self.x
         self.y += self.vy * self.game.dt * self.speed
         self.rect.y = self.y
-    
+
+class Particle(Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.all_particles
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        # creates a spritesheet using sprite_sheet.png
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
+        # sets the size of the image as a surface an eighth of the tilesize
+        self.image = pg.Surface((TILESIZE/8, TILESIZE/8))
+        # colors the rectangle with the designated color GREEN
+        self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.vel = vec(randint(-180, 180), randint(-180,180))
+        self.pos = vec(x,y)
+        # establishes the speed as a random integer between 1 and 3
+        self.speed = randint(1,3)
+        # creates countdown variable as a Cooldown class
+        self.countdown = Cooldown()
+        self.countdown.event_time = floor(pg.time.get_ticks()/1000)
+        # print(self.pos.x)
+        # print(self.pos.y)
+
+    def update(self):
+        # calls countdown's ticking function
+        self.countdown.ticking()
+        # updates the position based on the speed and velocity
+        self.pos += self.vel * self.speed * self.game.dt
+        # if the countdown exceeds 1, executes the kill function
+        if self.countdown.delta > 1:
+            # kills the particle
+            self.kill()
+        self.rect.x = self.pos.x
+        self.rect.y = self.pos.y
 
 class Mob(Sprite):
     def __init__(self, game, x, y):

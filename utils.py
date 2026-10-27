@@ -16,7 +16,7 @@ class Map:
         self.height = self.tileheight * TILESIZE
         # print("map instantiated")
 
-# establish Spritesheet class to import a sheet with all sprites in it
+# establishes Spritesheet class to import a sheet with all sprites in it
 class Spritesheet:
     def __init__(self, filename):
         # loads an image (sprite) and converts it to a format pygame can use
@@ -28,3 +28,27 @@ class Spritesheet:
         new_image = pg.transform.scale(image, (width, height))
         image = new_image
         return image
+
+# establishes Cooldown class to count down time until an event
+class Cooldown:
+    def __init__(self):
+        # preset for event_time, current_time, and delta as 0
+        self.event_time = 0
+        self.current_time = 0
+        self.delta = 0
+
+    def ticking(self):
+        # gets the ticks divided by 1000 to set the current time
+        self.current_time = floor((pg.time.get_ticks())/1000)
+        # sets delta as the differnce between current_time and event_time
+        # delta will be called as the actual countdown
+        self.delta = self.current_time - self.event_time
+
+    # def start(self):
+    #     self.event_time = floor(pg.time.get_ticks()
+
+    # def ready(self):
+    #     self.current_time = pg.time.get_ticks()
+    #     if self.current_time - self.event_time > 0:
+    #         return True
+    #     return False

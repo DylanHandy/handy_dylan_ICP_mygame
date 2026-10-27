@@ -73,6 +73,7 @@ class Game:
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
         self.all_collectibles = pg.sprite.Group()
+        self.all_particles = pg.sprite.Group()
 
         # goes through all the rows and their tiles of self.map
         for row, tiles in enumerate(self.map.data):
