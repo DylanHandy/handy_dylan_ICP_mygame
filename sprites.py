@@ -441,3 +441,77 @@ class Collectible(Sprite):
         self.animate()
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
+
+class Node(Sprite):
+    def __init__(self, row, col):
+        self.row = row
+        self.col = col
+        self.is_wall = False
+        self.is_start = False
+        self.is_end = False
+        self.visited = False
+        self.in_queue = False
+        # when a new node is discovered, its parent becomes the
+        # node it came from
+        self.parent = None
+
+    # draws the nodes on the grid
+    def draw(self, surface):
+        # converts the map to gridlike rows and columns
+        rect = (self.col*TILESIZE, self.row*TILESIZE, TILESIZE, TILESIZE)
+        # if a node has the given attribute, sets its color to be drawn
+        # categorizes the nodes visually
+        if self.is_wall:
+            color = BLACKISH
+        elif self.is_start:
+            color = GREEN
+        elif self.is_end:
+            color = RED
+        elif self.visited:
+            color = YELLOW
+        elif self.in_queue:
+            color = BLUE
+        # detects if the node is in the path, hasn't been visited, and
+        # isn't the end, so it must be the current tracing node
+        elif self.parent and not self.visited and not self.is_end:
+            color = ORANGE
+        else:
+            color = WHITE
+        # draws the nodes and their outlines using their color and gray
+        pg.draw.rect(surface, color, rect)
+        pg.draw.rect(surface, GRAY, rect, 1)
+
+    # gets the node's neighbors in the orthogonal directions
+    def get_neighbors(self, grid):
+        neighbors = []
+        # orthogonal directions
+        directions = [(-1,0), (1,0), (0,-1), (0,1)]
+        # selects directions to find neighbors
+        for dr, dc in directions:
+            # adds the current node's position to the directions to get
+            # the neighbor node's position
+            r, c = self.row + dr, self.col + dc
+        if 0 <= r < ROWS and 0 <= c < COLS:
+            neighbor = grid[r][c]
+            # detects if the node is an actually accessible tile and 
+            # not just a wall
+            if not neighbor.is_wall:
+                # adds neighbor to the neighbors list to compile all the neighbors
+                neighbors.append(neighbor)
+        return neighbors
+
+    def create_grid():
+        # nested list comprehension
+        # provides a compact way to create a 2D grid
+        return [[Node(r, c) for c in range(COLS)] for r in range(ROWS)]
+
+    def draw_all(surface, grid):
+        # clears screen before each new frame is drawn
+        surface.fill(WHITE)
+        # draws all nodes in all rows
+        for row in grid:
+            for node in row:
+                node.draw(surface)
+        # updates the display surface to the screen so that the drawings
+        # appear on screen
+        pg.display.flip()

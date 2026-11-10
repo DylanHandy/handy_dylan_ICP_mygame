@@ -2,17 +2,23 @@ import pygame as pg
 
 WIDTH = 1024
 HEIGHT = 768
+ROWS, COLS = 32, 24
 TITLE = "Best game ever!!!"
 # establishes how many pixels are there for each tile
-TILESIZE = 32
+TILESIZE = WIDTH // COLS
 FPS = 30
 
 # colors
 BGCOLOR = (255, 100, 100)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
+GREEN = (46, 204, 113)
+RED = (231, 76, 60)
 BLACK = (0, 0, 0)
+YELLOW = (241, 196, 15)
+BLUE = (52, 152, 219)
+BLACKISH = (30, 30, 30)
+ORANGE = (230, 126, 34)
+GRAY = (200, 200, 200)
 
 # player settings
 PLAYER_SPEED = 1
