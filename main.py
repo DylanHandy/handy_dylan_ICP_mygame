@@ -46,6 +46,7 @@ class Game:
         # sound (audio) directory
         self.snd_dir = path.join(self.game_dir, "audio")
         self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "odd_coin.mp3"))
+        self.jump_sound = pg.mixer.Sound(path.join(self.snd_dir, 'Jump33.wav'))
         self.map = Map(path.join(self.game_dir, map))
         try:
             # "x" creates a file but won't override an existing file

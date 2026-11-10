@@ -18,6 +18,7 @@ BLACK = (0, 0, 0)
 PLAYER_SPEED = 1
 # TILESIZE - 5 so that if it grazes the edge, it doesn't take effect
 PLAYER_HIT_RECT = pg.Rect(0,0, TILESIZE-5, TILESIZE-5)
+PLAYER_JUMP = 50
 PLAYER_FRIC = -0.1
 
 # mob settings

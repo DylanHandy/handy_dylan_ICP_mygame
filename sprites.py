@@ -124,6 +124,10 @@ class Player(Sprite):
             # self.vel.y = -PLAYER_SPEED
             self.acc.y = -PLAYER_SPEED
             # self.vy = -PLAYER_SPEED
+        # if spacebar is pressed
+        if keys[pg.K_SPACE]:
+            # run jump function
+            self.jump()
         # detects if the player is moving in both x and y directions (diagonally)
         # if self.vel.x != 0 and self.vel.y != vec(0,0):
         #     self.vel *= 0.7071
@@ -137,13 +141,29 @@ class Player(Sprite):
         # print(keys[pg.K_LEFT])
     
     def jump(self):
-        pass
+        # jump only if standing on a platform
+        self.rect.y += 2
+        # detects collision with blocks being jumped on
+        hits = pg.sprite.spritecollide(self, self.game.all_walls, False)
+        self.rect.y -= 2
+        if hits and not self.jumping:
+            # plays the jumping sound
+            self.game.jump_sound.play()
+            self.jumping = True
+            # falling down from jump
+            self.vel.y = -PLAYER_JUMP
+    
+    def is_jumping(self):
+        if self.vel.y > 0:
+            hits = pg.sprite.spritecollide(self, self.game.all_walls, False)
+            if hits:
+                self.jumping = False
 
     def animate(self):
         # use the time element to get now
         now = pg.time.get_ticks()
         # checks if the direction the player has been changed from "none"
-        if self.dir == "none":
+        if dir == "none":
             # checks whether 350ms have elapsed between the last update and now
             if now - self.last_update > 350:
                 self.last_update = now
@@ -155,7 +175,7 @@ class Player(Sprite):
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
         # checks if the direction the player is moving in is "left"
-        elif self.dir == "left":
+        elif dir == "left":
             # if it is, the sprite won't animate between frames and will remain still
             pass
     
@@ -167,8 +187,9 @@ class Player(Sprite):
     def update(self):
         self.acc = vec(0,1)
         # calls the get_keys function
-        self.get_keys()
         self.animate()
+        self.is_jumping
+        self.get_keys()
         self.acc.x += self.vel.x * PLAYER_FRIC
         self.acc.y += self.vel.y * PLAYER_FRIC
         self.vel += self.acc
@@ -193,6 +214,8 @@ class Player(Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.all_walls, "y")
         self.rect.center = self.hit_rect.center
+        if collide_with_walls(self, self.game.all_walls, 'y'):
+            self.jumping = False
 
            
 class Wall(Sprite):
