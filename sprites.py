@@ -4,6 +4,8 @@ from pygame.sprite import Sprite
 from utils import *
 
 from random import randint
+from collections import deque
+import sys
 
 # os = operating system, which on this device, is Windows
 from os import path
@@ -491,13 +493,13 @@ class Node(Sprite):
             # adds the current node's position to the directions to get
             # the neighbor node's position
             r, c = self.row + dr, self.col + dc
-        if 0 <= r < ROWS and 0 <= c < COLS:
-            neighbor = grid[r][c]
-            # detects if the node is an actually accessible tile and 
-            # not just a wall
-            if not neighbor.is_wall:
-                # adds neighbor to the neighbors list to compile all the neighbors
-                neighbors.append(neighbor)
+            if 0 <= r < ROWS and 0 <= c < COLS:
+                neighbor = grid[r][c]
+                # detects if the node is an actually accessible tile and 
+                # not just a wall
+                if not neighbor.is_wall:
+                    # adds neighbor to the neighbors list to compile all the neighbors
+                    neighbors.append(neighbor)
         return neighbors
 
     def create_grid():
@@ -515,3 +517,90 @@ class Node(Sprite):
         # updates the display surface to the screen so that the drawings
         # appear on screen
         pg.display.flip()
+
+    # runs the breadth first search pathfinding algorithm
+    def run_bfs(surface, grid, start_node, end_node):
+        # deque = double ended queue - manages fast constant-time additions
+        queue = deque([start_node])
+        start_node.in_queue = True
+        # creates a clock using pygame's built-in clock class
+        clock = pg.time.Clock()
+        while queue:
+            # pygame event loop that keeps the algorithm constantly updating
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+            # removes and returns the first (leftmost) item from the deque
+            current = queue.popleft()
+            current.visited = True
+            # detects if the deque has reached the end node
+            if current == end_node():
+                # reconstruct the shortest path using the parent pointers
+                # declares temp as the current's parent
+                temp = current.parent
+                # if temp exists and is not the start node, we establish the path of the node
+                while temp and temp != start_node:
+                    # clears visited path to show an orange path
+                    temp.visited = False
+                    Node.draw_all(surface, grid)
+                    clock.tick(30)
+                    # continues the parent chain
+                    temp = temp.parent
+                return True
+            for neighbor in current.get_neighbors(grid):
+                if not neighbor.in_queue and not neighbor.visited and neighbor != start_node():
+                    neighbor.in_queue = True
+                    neighbor.parent = current
+                    queue.append(neighbor)
+            # redraws grid
+            Node.draw_all(surface, grid)
+            # limits the visualization speed to 60 fps
+            clock.tick(60)
+        # no path found
+        return False
+
+    # reminder to add comments here
+    def main():
+        pg.init()
+        surface = pg.display.set_mode((WIDTH, HEIGHT))
+        clock = pg.time.Clock()
+
+        grid = Node.create_grid()
+        
+        # set default start and end nodes
+        start_node = grid[5][5]
+        end_node = grid[25][25]
+        start_node.is_start = True
+        end_node.is_end = True
+
+        running = True
+        path_found = False
+
+        while running:
+            surface.fill(WHITE)
+            
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    running = False
+
+                # keyboard triggers
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_SPACE and not path_found:
+                        path_found = Node.run_bfs(surface, grid, start_node, end_node)
+                    elif event.key == pg.K_r:  # Reset grid
+                        grid = Node.create_grid()
+                        start_node = grid[5][5]
+                        end_node = grid[25][25]
+                        start_node.is_start = True
+                        end_node.is_end = True
+                        path_found = False
+
+            Node.draw_all(surface, grid)
+            clock.tick(60)
+
+        pg.quit()
+        sys.exit()
+
+    if __name__ == "__main__":
+        main()
