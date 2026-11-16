@@ -75,6 +75,7 @@ class Game:
         self.all_mobs = pg.sprite.Group()
         self.all_collectibles = pg.sprite.Group()
         self.all_particles = pg.sprite.Group()
+        self.grid = Node.create_grid()
 
         # goes through all the rows and their tiles of self.map
         for row, tiles in enumerate(self.map.data):
@@ -84,6 +85,7 @@ class Game:
                 if tile == "1":
                     # creates a wall wherever the tile is "1"
                     Wall(self, col, row)
+                    self.grid[row][col].is_wall = True
                 # detects if the tile in the selected column and row is "M"
                 if tile == "M":
                     # creates a mob wherever the tile is "M"

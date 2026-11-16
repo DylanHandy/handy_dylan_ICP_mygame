@@ -85,6 +85,8 @@ class Player(Sprite):
         # print(self.rect.y)
         self.collectibles = 0
         self.jumping = False
+        self.col = x
+        self.row = y
     # creating player controls by key presses
     def get_keys(self):
         # reset velocity to 0 again because init only runs once
@@ -218,6 +220,8 @@ class Player(Sprite):
         self.rect.center = self.hit_rect.center
         if collide_with_walls(self, self.game.all_walls, 'y'):
             self.jumping = False
+        self.col = int(self.pos.x // TILESIZE)
+        self.row = int(self.pos.y // TILESIZE)
 
            
 class Wall(Sprite):
@@ -306,95 +310,6 @@ class Particle(Sprite):
             self.kill()
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
-
-class Mob(Sprite):
-    def __init__(self, game, x, y):
-        self.groups = game.all_sprites, game.all_mobs
-        Sprite.__init__(self, self.groups)
-        self.game = game
-        # creates a spritesheet using sprite_sheet.png
-        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
-        # calls the load_images function through self
-        self.load_images()
-        # establishes the size of the image to have dimensions of TILESIZE
-        self.image = pg.Surface((TILESIZE, TILESIZE))
-        # gets the image from self.spritesheet to display it onscreen
-        self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
-        self.rect = self.image.get_rect()
-        self.speed = 100
-        self.hit_rect = MOB_HIT_RECT
-        # establishes velocity as a vector with no magnitude or direction
-        self.vel = vec(0,0)
-        # establishes position as a vector with x and y
-        self.pos = vec(x*TILESIZE,y*TILESIZE)
-        # print("mob initialized")
-        # print(self.rect.x)
-        # print(self.rect.y)
-        self.last_update = 0
-        self.current_frame = 0
-
-    def load_images(self):
-        self.idle_frames = [self.spritesheet.get_image(2*TILESIZE,0,TILESIZE, TILESIZE),
-                            self.spritesheet.get_image(3*TILESIZE,0,TILESIZE, TILESIZE)
-                            ]
-
-    def animate(self):
-        # use the time element to get now
-        now = pg.time.get_ticks()
-        # checks whether 350ms have elapsed between the last update and now
-        if now - self.last_update > 350:
-            self.last_update = now
-            self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
-            bottom = self.rect.bottom
-            self.image = self.idle_frames[self.current_frame]
-            # establishes BLACK as the color that will be filtered out of the sprite
-            self.image.set_colorkey(BLACK)
-            self.rect = self.image.get_rect()
-            self.rect.bottom = bottom
-
-    # used autocomplete by creating a chase method using pos vectors
-    # and obj as a parameter
-    def chase(self, obj):
-        if self.pos.x < obj.pos.x:
-            self.vel.x = self.speed
-            self.dir = "right"
-        elif self.pos.x > obj.pos.x:
-            self.vel.x = -self.speed
-            self.dir = "left"
-        else:
-            self.vel.x = 0
-
-        if self.pos.y < obj.pos.y:
-            self.vel.y = self.speed
-        elif self.pos.y > obj.pos.y:
-            self.vel.y = -self.speed
-        else:
-            self.vel.y = 0
-    
-    def update(self):
-        self.animate()
-        # detects if the right of the mob has hit the edge of the right 
-        # or the left of the mob has hit the left wall
-        # if self.rect.right > WIDTH or self.rect.x < 0:
-        #     # print("i've broken out!")
-        #     # changes speed to -1 to switch the direction of the velocity
-        #     self.speed *= -1
-        #     # makes the mob go down (y-value up) one unit after colliding with the edge
-        #     self.y += TILESIZE
-        # self.x += self.vx * self.game.dt * self.speed
-        # self.rect.x = self.x
-        # self.y += self.vy * self.game.dt * self.speed
-        # self.rect.y = self.y
-        self.chase(self.game.player)
-        self.rect.center = self.pos
-        self.pos += self.vel * self.game.dt
-        self.hit_rect.centerx = self.pos.x
-        collide_with_walls(self, self.game.all_walls, "x")
-        self.hit_rect.centery = self.pos.y
-        collide_with_walls(self, self.game.all_walls, "y")
-        self.rect.center = self.hit_rect.center
-
-
 
 class Collectible(Sprite):
     def __init__(self, game, x, y):
@@ -535,7 +450,7 @@ class Node(Sprite):
             current = queue.popleft()
             current.visited = True
             # detects if the deque has reached the end node
-            if current == end_node():
+            if current == end_node:
                 # reconstruct the shortest path using the parent pointers
                 # declares temp as the current's parent
                 temp = current.parent
@@ -565,42 +480,140 @@ class Node(Sprite):
         pg.init()
         surface = pg.display.set_mode((WIDTH, HEIGHT))
         clock = pg.time.Clock()
-
         grid = Node.create_grid()
-        
         # set default start and end nodes
         start_node = grid[5][5]
-        end_node = grid[25][25]
+        end_node = grid[20][30]
         start_node.is_start = True
         end_node.is_end = True
-
         running = True
         path_found = False
-
         while running:
             surface.fill(WHITE)
-            
             for event in pg.event.get():
                 if event.type == pg.QUIT:
-                    running = False
+                    pg.quit()
+                    sys.exit()
+            #     # keyboard triggers
+            #     if event.type == pg.KEYDOWN:
+            #         if event.key == pg.K_SPACE and not path_found:
+            #             path_found = Node.run_bfs(surface, grid, start_node, end_node)
+            #         elif event.key == pg.K_r:  # Reset grid
+            #             grid = Node.create_grid()
+            #             start_node = grid[5][5]
+            #             end_node = grid[25][25]
+            #             start_node.is_start = True
+            #             end_node.is_end = True
+            #             path_found = False
+            # Node.draw_all(surface, grid)
+            # clock.tick(60)
+        Mob.update_position_towards_player(grid, Player)
+        Node.draw_all(surface, grid)
+        pg.display.flip()
+        clock.tick(60)
 
-                # keyboard triggers
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_SPACE and not path_found:
-                        path_found = Node.run_bfs(surface, grid, start_node, end_node)
-                    elif event.key == pg.K_r:  # Reset grid
-                        grid = Node.create_grid()
-                        start_node = grid[5][5]
-                        end_node = grid[25][25]
-                        start_node.is_start = True
-                        end_node.is_end = True
-                        path_found = False
+class Mob(Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.all_mobs
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        # creates a spritesheet using sprite_sheet.png
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
+        # calls the load_images function through self
+        self.load_images()
+        # establishes the size of the image to have dimensions of TILESIZE
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        # gets the image from self.spritesheet to display it onscreen
+        self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
+        self.rect = self.image.get_rect()
+        self.speed = 100
+        self.hit_rect = MOB_HIT_RECT
+        # establishes velocity as a vector with no magnitude or direction
+        self.vel = vec(0,0)
+        # establishes position as a vector with x and y
+        self.pos = vec(x*TILESIZE,y*TILESIZE)
+        self.col = x
+        self.row = y
+        # print("mob initialized")
+        # print(self.rect.x)
+        # print(self.rect.y)
+        self.last_update = 0
+        self.current_frame = 0
 
-            Node.draw_all(surface, grid)
-            clock.tick(60)
+    def load_images(self):
+        self.idle_frames = [self.spritesheet.get_image(2*TILESIZE,0,TILESIZE, TILESIZE),
+                            self.spritesheet.get_image(3*TILESIZE,0,TILESIZE, TILESIZE)
+                            ]
 
-        pg.quit()
-        sys.exit()
+    def animate(self):
+        # use the time element to get now
+        now = pg.time.get_ticks()
+        # checks whether 350ms have elapsed between the last update and now
+        if now - self.last_update > 350:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
+            bottom = self.rect.bottom
+            self.image = self.idle_frames[self.current_frame]
+            # establishes BLACK as the color that will be filtered out of the sprite
+            self.image.set_colorkey(BLACK)
+            self.rect = self.image.get_rect()
+            self.rect.bottom = bottom
 
-    if __name__ == "__main__":
-        main()
+    # used autocomplete by creating a chase method using pos vectors
+    # and obj as a parameter
+    def update_position_towards_player(self, grid, player):
+        start_node = grid[self.row][self.col]
+        end_node = grid[player.row][player.col]
+        # detects if mob is already on player's tile
+        if start_node == end_node:
+            return
+        path = self.get_bfs_path(grid, start_node, end_node)
+        if path and len(path) > 1:
+            # path[0] is the start node, and path[1] is the next step
+            next_node = path[1]
+            self.row = next_node.row
+            self.col = next_node.col
+
+    def get_bfs_path(self, grid, start_node, end_node):
+        for row in grid:
+            for node in row:
+                node.visited = False
+                node.parent = None
+                node.in_queue = False
+        queue = deque([start_node])
+        start_node.in_queue = True
+        while queue:
+            current = queue.popleft()
+            current.visited = True
+            # if reached the player, construct the path backwards
+            if current == end_node:
+                path = []
+                temp = current
+                while temp:
+                    path.append(temp)
+                    temp = temp.parent
+                # reverses path so it goes from start to player
+                return path[::-1]
+            # checking neighbors
+            for neighbor in current.get_neighbors(grid):
+                if not neighbor.in_queue and not neighbor.visited:
+                    neighbor.in_queue = True
+                    neighbor.parent = current
+                    queue.append(neighbor)
+        # returns no path if the player is walled off
+        return None
+    
+    def update(self):
+        self.animate()
+        # call the function to update row and col towards player
+        if hasattr(self.game, 'grid') and hasattr(self.game, 'player'):
+            self.update_position_towards_player(self.game.grid, self.game.player)
+        # sync pixel position with updated grid row and col
+        self.pos.x = self.col * TILESIZE
+        self.pos.y = self.row * TILESIZE  
+        self.rect.center = self.pos
+        self.hit_rect.centerx = self.pos.x
+        collide_with_walls(self, self.game.all_walls, "x")
+        self.hit_rect.centery = self.pos.y
+        collide_with_walls(self, self.game.all_walls, "y")
+        self.rect.center = self.hit_rect.center
