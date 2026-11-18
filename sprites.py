@@ -539,6 +539,8 @@ class Mob(Sprite):
         # print(self.rect.y)
         self.last_update = 0
         self.current_frame = 0
+        self.last_move = 0
+        self.move_delay = 200
 
     def load_images(self):
         self.idle_frames = [self.spritesheet.get_image(2*TILESIZE,0,TILESIZE, TILESIZE),
@@ -599,21 +601,30 @@ class Mob(Sprite):
                 if not neighbor.in_queue and not neighbor.visited:
                     neighbor.in_queue = True
                     neighbor.parent = current
+                    # adds the neighbor to the queue
                     queue.append(neighbor)
         # returns no path if the player is walled off
         return None
     
     def update(self):
         self.animate()
-        # call the function to update row and col towards player
-        if hasattr(self.game, 'grid') and hasattr(self.game, 'player'):
-            self.update_position_towards_player(self.game.grid, self.game.player)
+        # gets time in ticks
+        now = pg.time.get_ticks()
+        # establishes move delay so the mobs don't immediately come
+        # barreling at the player (moderates speed)
+        if now - self.last_move > self.move_delay:
+            self.last_move = now
+            # call the function to update row and col towards player
+            if hasattr(self.game, 'grid') and hasattr(self.game, 'player'):
+                self.update_position_towards_player(self.game.grid, self.game.player)
         # sync pixel position with updated grid row and col
         self.pos.x = self.col * TILESIZE
         self.pos.y = self.row * TILESIZE  
         self.rect.center = self.pos
         self.hit_rect.centerx = self.pos.x
+        # stops mob when it collides with a wall in the x direction 
         collide_with_walls(self, self.game.all_walls, "x")
         self.hit_rect.centery = self.pos.y
+        # stops mob when it collides with a wall in the y direction
         collide_with_walls(self, self.game.all_walls, "y")
         self.rect.center = self.hit_rect.center
