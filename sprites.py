@@ -526,12 +526,13 @@ class Mob(Sprite):
         # gets the image from self.spritesheet to display it onscreen
         self.image = self.spritesheet.get_image(0,0,TILESIZE,TILESIZE)
         self.rect = self.image.get_rect()
-        self.speed = 100
+        self.speed = 150
         self.hit_rect = MOB_HIT_RECT
         # establishes velocity as a vector with no magnitude or direction
         self.vel = vec(0,0)
         # establishes position as a vector with x and y
         self.pos = vec(x*TILESIZE,y*TILESIZE)
+        self.target_pos = vec(self.pos)
         self.col = x
         self.row = y
         # print("mob initialized")
@@ -564,17 +565,21 @@ class Mob(Sprite):
     # used autocomplete by creating a chase method using pos vectors
     # and obj as a parameter
     def update_position_towards_player(self, grid, player):
+        # only search for a new step if reached target pos
         start_node = grid[self.row][self.col]
         end_node = grid[player.row][player.col]
         # detects if mob is already on player's tile
         if start_node == end_node:
             return
-        path = self.get_bfs_path(grid, start_node, end_node)
-        if path and len(path) > 1:
-            # path[0] is the start node, and path[1] is the next step
-            next_node = path[1]
-            self.row = next_node.row
-            self.col = next_node.col
+        if self.pos == self.target_pos:
+            path = self.get_bfs_path(grid, start_node, end_node)
+            if path and len(path) > 1:
+                # path[0] is the start node, and path[1] is the next step
+                next_node = path[1]
+                self.row = next_node.row
+                self.col = next_node.col
+                # set the target for the mob to glide toward
+                self.target_pos = vec(self.col*TILESIZE, self.row*TILESIZE)
 
     def get_bfs_path(self, grid, start_node, end_node):
         for row in grid:
@@ -608,18 +613,29 @@ class Mob(Sprite):
     
     def update(self):
         self.animate()
-        # gets time in ticks
-        now = pg.time.get_ticks()
-        # establishes move delay so the mobs don't immediately come
-        # barreling at the player (moderates speed)
-        if now - self.last_move > self.move_delay:
-            self.last_move = now
-            # call the function to update row and col towards player
-            if hasattr(self.game, 'grid') and hasattr(self.game, 'player'):
-                self.update_position_towards_player(self.game.grid, self.game.player)
-        # sync pixel position with updated grid row and col
-        self.pos.x = self.col * TILESIZE
-        self.pos.y = self.row * TILESIZE  
+        # originally: got time and ticks and established delay
+        # call the function to update row and col towards player
+        # continuously check for the next step
+        if hasattr(self.game, 'grid') and hasattr(self.game, 'player'):
+            self.update_position_towards_player(self.game.grid, self.game.player)
+        # # sync pixel position with updated grid row and col
+        # self.pos.x = self.col * TILESIZE
+        # self.pos.y = self.row * TILESIZE
+        # if mob isn't at target_pos, glide toward it
+        # (rather than clunky tile movement)
+        if self.pos != self.target_pos:
+            # vector which is the difference in position between
+            # target_pos and pos to find the direction
+            dir = self.target_pos - self.pos
+            if dir.length() > 0:
+                # converts dir to a unit vector
+                dir = dir.normalize()
+                # position equation based on speed and time
+                self.pos += dir * self.speed * self.game.dt
+                # snap to target if extremely close to prevent jittering
+                if (self.target_pos - self.pos).length() < (self.speed * self.game.dt):
+                    self.pos = vec(self.target_pos)
+        old_pos = vec(self.pos)
         self.rect.center = self.pos
         self.hit_rect.centerx = self.pos.x
         # stops mob when it collides with a wall in the x direction 
@@ -628,3 +644,9 @@ class Mob(Sprite):
         # stops mob when it collides with a wall in the y direction
         collide_with_walls(self, self.game.all_walls, "y")
         self.rect.center = self.hit_rect.center
+        # if a wall blocks the mob's movement, resets target so
+        # mob doesn't freeze
+        if self.pos != old_pos and self.pos != self.target_pos:
+            self.target_pos = vec(self.pos)
+            self.col = int(round(self.pos.x / TILESIZE))
+            self.row = int(round(self.pos.y / TILESIZE))
