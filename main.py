@@ -23,6 +23,35 @@ Process: cursor position, player position, score, enemy position, velocity, aim,
 Output: graphics (things that are drawn), sound, haptics, etc.
 """
 
+"""
+Goals: The primary goal is to escape the current level to move onto the next until you escape the last one and beat the game. 
+You do this by unlocking new areas in the level to collect items until you escape.
+
+Rules: The player can only move in 2 dimensions, so there is no jumping. 
+The monster in each level acts almost the same, tracking and chasing the player, but some will have different restrictions, boosts, and/or tracking patterns than others. 
+The player accesses new rooms by unlocking them through items and going offscreen. 
+Power-ups can be collected to either temporarily nerf the monster (e.g. temporary stun) or temporarily buff the player (e.g. speed boost). Power-ups can't be used more than once. 
+If the monster catches up to and touches the player, the player dies (or loses a life depending on power-ups or difficulty balancing). 
+The players can't pass through walls, and the monster can't be "killed." A timer will be added per level if necessary. 
+
+Feedback: An animation will play when items are collected or when the player is caught by the monster. 
+The monster and player will have walking animations. Particles may be used. I'm not to sure about the feedback.
+
+Freedom: As the player in the game, you can move however you please as long as it is within the confines of the level. 
+You are limited by the rooms you haven't gained access to yet. The inventory (where you store items) contains only one item slot, so you can only hold and use one item at a time.
+
+Mechanics: WASD or arrow keys to move in the x and y axes. 
+Space bar to pick up item once in range and to use it once item slot is filled. Monster chases player by tracking and following them using an algorithm or the chase function.
+"""
+
+"""
+Sources: 
+https://skilled.dev/course/breadth-first-search/python
+https://gameidea.org/short-posts/breadth-first-search-bfs/
+https://medium.com/@shantanuparab99/breadth-first-search-785dce0ad0a9
+Google Gemini Auto used for initial research and debugging of BFS
+"""
+
 class Game:
     def __init__(self):
         pg.init()

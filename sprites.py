@@ -194,6 +194,8 @@ class Player(Sprite):
         self.animate()
         self.is_jumping
         self.get_keys()
+        self.col = int(self.pos.x // TILESIZE)
+        self.row = int(self.pos.y // TILESIZE)
         self.acc.x += self.vel.x * PLAYER_FRIC
         self.acc.y += self.vel.y * PLAYER_FRIC
         self.vel += self.acc
@@ -220,8 +222,6 @@ class Player(Sprite):
         self.rect.center = self.hit_rect.center
         if collide_with_walls(self, self.game.all_walls, 'y'):
             self.jumping = False
-        self.col = int(self.pos.x // TILESIZE)
-        self.row = int(self.pos.y // TILESIZE)
 
            
 class Wall(Sprite):
@@ -646,7 +646,16 @@ class Mob(Sprite):
         self.rect.center = self.hit_rect.center
         # if a wall blocks the mob's movement, resets target so
         # mob doesn't freeze
-        if self.pos != old_pos and self.pos != self.target_pos:
-            self.target_pos = vec(self.pos)
+        # if self.pos != old_pos and self.pos != self.target_pos:
+        #     self.target_pos = vec(self.pos)
+        #     self.col = int(round(self.pos.x / TILESIZE))
+        #     self.row = int(round(self.pos.y / TILESIZE))
+        if self.pos.x != old_pos.x or self.pos.y != old_pos.y:
             self.col = int(round(self.pos.x / TILESIZE))
             self.row = int(round(self.pos.y / TILESIZE))
+            if self.pos != self.target_pos:
+                self.target_pos = vec(self.pos)
+        else:
+            if self.pos == self.target_pos:
+                self.col = int(round(self.pos.x / TILESIZE))
+                self.row = int(round(self.pos.y / TILESIZE))
