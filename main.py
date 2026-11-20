@@ -1,5 +1,6 @@
 # This file was created by Dylan Handy.
 # Code inspired by game developer Chris Bradfield, who was inspired by Notch
+# Game can be found at: https://github.com/DylanHandy/handy_dylan_ICP_mygame
 
 import pygame as pg
 from os import path
